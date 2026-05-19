@@ -1,6 +1,7 @@
 package com.ventas.luckyphonedemo.controller;
 
 import com.ventas.luckyphonedemo.dto.ProductoResponseDTO;
+import com.ventas.luckyphonedemo.mapper.ProductoMapper;
 import com.ventas.luckyphonedemo.model.Producto;
 import com.ventas.luckyphonedemo.service.ProductoService;
 import jakarta.validation.Valid;
@@ -19,6 +20,7 @@ import java.util.List;
 public class ProductoController {
 
     private final ProductoService service;
+    private final ProductoMapper ProductoMapper;
 
     // ==========================================
     // 🌐 ENDPOINTS PÚBLICOS (Para los Clientes - Catálogo WSP)
@@ -65,8 +67,13 @@ public class ProductoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> obtenerPorId(@PathVariable Long id){
-        return ResponseEntity.ok(service.obtenerPorId(id));
+    public ResponseEntity<ProductoResponseDTO> obtenerPorId(@PathVariable Long id){
+        // Opción A: Si tu servicio ya tiene un método que devuelve el DTO directo:
+        // return ResponseEntity.ok(service.obtenerDetallePublico(id));
+
+        // Opción B: Si tu servicio devuelve el Producto y usas el mapper aquí (Asegúrate de tener inyectado tu ProductoMapper):
+        Producto producto = service.obtenerPorId(id);
+        return ResponseEntity.ok(ProductoMapper.toDTO(producto));
     }
 
     @GetMapping("/categoria/{categoriaId}")

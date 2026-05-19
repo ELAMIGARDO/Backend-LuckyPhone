@@ -44,7 +44,7 @@ public class ProductoMapper {
         String mensajeCodificado = UriUtils.encode(mensaje, StandardCharsets.UTF_8);
 
         // Construir la URL final dinámicamente usando la variable inyectada
-        String urlFinal = "https://wa.me" + whatsappNumero + "?text=" + mensajeCodificado;
+        String urlFinal = "https://wa.me/" + whatsappNumero + "?text=" + mensajeCodificado;
 
         dto.setWhatsappLink(urlFinal);
 
