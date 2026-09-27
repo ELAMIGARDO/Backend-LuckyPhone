@@ -83,14 +83,14 @@ public class ProductoController {
 
     // POST - Crear producto
     @PostMapping
-    public ResponseEntity<Producto> crearProducto(@Valid @RequestBody Producto producto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(producto));
+    public ResponseEntity<ProductoResponseDTO> crearProducto(@Valid @RequestBody com.ventas.luckyphonedemo.dto.ProductoRequestDTO productoDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.crearConDto(productoDto));
     }
 
     // PUT - Actualizar producto
     @PutMapping("/{id}")
-    public ResponseEntity<Producto> actualizarProducto(@PathVariable Long id, @Valid @RequestBody Producto producto) {
-        return ResponseEntity.ok(service.actualizar(id, producto));
+    public ResponseEntity<ProductoResponseDTO> actualizarProducto(@PathVariable Long id, @Valid @RequestBody com.ventas.luckyphonedemo.dto.ProductoRequestDTO productoDto) {
+        return ResponseEntity.ok(service.actualizarConDto(id, productoDto));
     }
 
     // DELETE - Eliminar producto
