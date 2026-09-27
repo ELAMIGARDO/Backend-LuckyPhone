@@ -11,6 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 
+@Builder
 public class Cliente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,4 +41,6 @@ public class Cliente {
     @NotBlank(message = "La contraseña es obligatoria")
     private String password;
 
+    @Builder.Default
+    private String rol = "ROLE_USER";
 }

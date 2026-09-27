@@ -57,7 +57,53 @@ public class ProductoService {
         return repository.findByCategoriaId(categoriaId);
     }
 
-    // PUT (Actualizar) - Aquí mapeamos los NUEVOS campos de la ficha técnica
+    @Autowired
+    private com.ventas.luckyphonedemo.repositorio.CategoriaRepository categoriaRepository;
+
+    // POST con DTO
+    public ProductoResponseDTO crearConDto(com.ventas.luckyphonedemo.dto.ProductoRequestDTO dto) {
+        if (dto.getStock() < 0) {
+            throw new BadRequestException("El Stock no puede ser negativo");
+        }
+        com.ventas.luckyphonedemo.model.Categoria categoria = null;
+        if (dto.getCategoriaId() != null) {
+            categoria = categoriaRepository.findById(dto.getCategoriaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + dto.getCategoriaId()));
+        }
+        Producto producto = productoMapper.toEntity(dto, categoria);
+        Producto guardado = repository.save(producto);
+        return productoMapper.toDTO(guardado);
+    }
+
+    // PUT con DTO
+    public ProductoResponseDTO actualizarConDto(Long id, com.ventas.luckyphonedemo.dto.ProductoRequestDTO dto) {
+        Producto producto = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
+
+        if (dto.getCategoriaId() != null) {
+            com.ventas.luckyphonedemo.model.Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + dto.getCategoriaId()));
+            producto.setCategoria(categoria);
+        }
+
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setPrecio(dto.getPrecio());
+        producto.setStock(dto.getStock());
+        producto.setMarca(dto.getMarca());
+        producto.setModelo(dto.getModelo());
+        producto.setAlmacenamiento(dto.getAlmacenamiento());
+        producto.setRam(dto.getRam());
+        producto.setColor(dto.getColor());
+        producto.setEstado(dto.getEstado());
+        producto.setBateria(dto.getBateria());
+        producto.setImagenUrl(dto.getImagenUrl());
+
+        Producto actualizado = repository.save(producto);
+        return productoMapper.toDTO(actualizado);
+    }
+
+    // PUT (Actualizar) legacy manteniéndose para compatibilidad
     public Producto actualizar(Long id, Producto productoActualizado) {
         Producto producto = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));

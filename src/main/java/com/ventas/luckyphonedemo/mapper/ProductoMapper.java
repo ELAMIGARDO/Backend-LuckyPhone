@@ -50,4 +50,23 @@ public class ProductoMapper {
 
         return dto;
     }
+
+    public Producto toEntity(com.ventas.luckyphonedemo.dto.ProductoRequestDTO dto, com.ventas.luckyphonedemo.model.Categoria categoria) {
+        Producto producto = new Producto();
+        producto.setNombre(dto.getNombre());
+        producto.setDescripcion(dto.getDescripcion());
+        producto.setPrecio(dto.getPrecio());
+        producto.setStock(dto.getStock());
+        producto.setMarca(dto.getMarca());
+        producto.setModelo(dto.getModelo());
+        producto.setAlmacenamiento(dto.getAlmacenamiento());
+        producto.setRam(dto.getRam());
+        producto.setColor(dto.getColor());
+        producto.setEstado(dto.getEstado());
+        producto.setBateria(dto.getBateria());
+        producto.setImagenUrl(dto.getImagenUrl());
+        producto.setCategoria(categoria);
+        producto.setActivo(true);
+        return producto;
+    }
 }
