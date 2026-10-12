@@ -80,7 +80,7 @@ public class ProductoService {
     }
 
     // POST con DTO: Control estricto de unicidad de Producto Padre por Modelo + Color + Almacenamiento + Estado
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ProductoResponseDTO crearConDto(ProductoRequestDTO dto) {
         if (dto.getStock() < 0) {
             throw new BadRequestException("El Stock no puede ser negativo");
