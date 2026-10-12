@@ -27,7 +27,7 @@ public class GarantiaController {
     }
 
     /**
-     * GET /api/garantias?anulados=false|true&estado=todos|vigentes|caducados&query=xyz
+     * GET /api/garantias?anulados=false|true&filtro=todos|vigentes|caducados&query=xyz
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> listarGarantias(
@@ -98,6 +98,7 @@ public class GarantiaController {
             dto.put("precioFinal", g.getPrecioFinal());
             dto.put("activacion", g.getFechaEmision() != null ? g.getFechaEmision().format(formatter) : "");
             dto.put("caducidad", g.getFechaCaducidad() != null ? g.getFechaCaducidad().format(formatter) : "");
+            dto.put("duracionGarantia", g.getDuracionGarantia());
             dto.put("diasRestantes", diasRestantes);
             dto.put("estado", diasRestantes > 0 ? "Vigente" : "Caducado");
             dto.put("estadoPago", g.getEstadoPago() != null ? g.getEstadoPago().name() : "PENDIENTE");
@@ -134,6 +135,33 @@ public class GarantiaController {
     public ResponseEntity<Garantia> crearGarantia(@RequestBody Garantia garantia) {
         Garantia emitida = proformaService.emitirProforma(garantia);
         return ResponseEntity.ok(emitida);
+    }
+
+    /**
+     * PUT /api/garantias/{id}
+     * Editar póliza/datos de garantía existente (sin 403 Forbidden).
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<Garantia> actualizarGarantia(@PathVariable String id, @RequestBody Garantia request) {
+        return garantiaRepository.findById(id).map(g -> {
+            if (request.getClienteNombre() != null) g.setClienteNombre(request.getClienteNombre());
+            if (request.getClienteDni() != null) g.setClienteDni(request.getClienteDni());
+            if (request.getClienteTelefono() != null) g.setClienteTelefono(request.getClienteTelefono());
+            if (request.getProductoModelo() != null) g.setProductoModelo(request.getProductoModelo());
+            if (request.getCategoria() != null) g.setCategoria(request.getCategoria());
+            if (request.getImei1() != null) g.setImei1(request.getImei1());
+            if (request.getImei2() != null) g.setImei2(request.getImei2());
+            if (request.getNumeroSerie() != null) g.setNumeroSerie(request.getNumeroSerie());
+            if (request.getDuracionGarantia() != null) g.setDuracionGarantia(request.getDuracionGarantia());
+            if (request.getPrecioBase() != null) g.setPrecioBase(request.getPrecioBase());
+            if (request.getDescuentoMonto() != null) g.setDescuentoMonto(request.getDescuentoMonto());
+            if (request.getPrecioFinal() != null) g.setPrecioFinal(request.getPrecioFinal());
+            if (request.getEmisorNombre() != null) g.setEmisorNombre(request.getEmisorNombre());
+            if (request.getFechaCaducidad() != null) g.setFechaCaducidad(request.getFechaCaducidad());
+
+            Garantia guardada = garantiaRepository.save(g);
+            return ResponseEntity.ok(guardada);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /**

@@ -99,12 +99,17 @@ public class Producto {
 
     // Helper methods para sincronizar la relación bidireccional
     public void addItemCelular(ItemCelular item) {
+        if (itemsCelulares == null) {
+            itemsCelulares = new ArrayList<>();
+        }
         itemsCelulares.add(item);
         item.setProducto(this);
     }
 
     public void removeItemCelular(ItemCelular item) {
-        itemsCelulares.remove(item);
-        item.setProducto(null);
+        if (itemsCelulares != null) {
+            itemsCelulares.remove(item);
+            item.setProducto(null);
+        }
     }
 }

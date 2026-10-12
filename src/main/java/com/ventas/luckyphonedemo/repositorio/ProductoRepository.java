@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
@@ -17,4 +18,11 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     Page<Producto> findByActivoTrue(Pageable pageable);
     
     List<Producto> findByNombreContainingIgnoreCaseAndActivoTrue(String nombre);
+
+    /**
+     * Busca la entidad Padre exacta combinando Modelo + Color + Almacenamiento + Estado (Condición)
+     */
+    Optional<Producto> findByModeloIgnoreCaseAndColorIgnoreCaseAndAlmacenamientoIgnoreCaseAndEstadoIgnoreCase(
+            String modelo, String color, String almacenamiento, String estado
+    );
 }

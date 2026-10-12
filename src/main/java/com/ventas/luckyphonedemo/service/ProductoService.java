@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductoService {
@@ -73,34 +74,63 @@ public class ProductoService {
         return repository.findByCategoriaId(categoriaId);
     }
 
-    // POST con DTO
+    // POST con DTO: Control estricto de unicidad de Producto Padre por Modelo + Color + Almacenamiento + Estado
     @Transactional
     public ProductoResponseDTO crearConDto(ProductoRequestDTO dto) {
         if (dto.getStock() < 0) {
             throw new BadRequestException("El Stock no puede ser negativo");
         }
+
         Categoria categoria = null;
         if (dto.getCategoriaId() != null) {
             categoria = categoriaRepository.findById(dto.getCategoriaId())
                     .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada con id: " + dto.getCategoriaId()));
         }
-        Producto producto = productoMapper.toEntity(dto, categoria);
-        
-        // Si vienen items de celular hijos
+
+        // 1. REGLA DE IDENTIDAD DEL PRODUCTO PADRE:
+        // Verificar si ya existe un padre que coincida exactamente en Modelo, Color, Almacenamiento y Estado (Condición)
+        boolean esCelular = (categoria != null && "Celulares".equalsIgnoreCase(categoria.getNombre()))
+                || (dto.getItemsCelulares() != null && !dto.getItemsCelulares().isEmpty());
+
+        Producto productoPadre;
+        if (esCelular && dto.getModelo() != null && dto.getColor() != null && dto.getEstado() != null) {
+            Optional<Producto> existenteOpt = repository.findByModeloIgnoreCaseAndColorIgnoreCaseAndAlmacenamientoIgnoreCaseAndEstadoIgnoreCase(
+                    dto.getModelo().trim(),
+                    dto.getColor().trim(),
+                    dto.getAlmacenamiento() != null ? dto.getAlmacenamiento().trim() : "",
+                    dto.getEstado().trim()
+            );
+
+            if (existenteOpt.isPresent()) {
+                // CASO SINTONÍA TOTAL: Reutilizamos el Padre existente y solo asociamos los nuevos items hijos
+                productoPadre = existenteOpt.get();
+                // Si el precio viene especificado, se actualiza
+                if (dto.getPrecio() > 0) {
+                    productoPadre.setPrecio(dto.getPrecio());
+                }
+            } else {
+                // CASO CONDICIÓN DIFERENTE O NUEVO MODELO: Creamos una entidad Producto Padre independiente
+                productoPadre = productoMapper.toEntity(dto, categoria);
+            }
+        } else {
+            productoPadre = productoMapper.toEntity(dto, categoria);
+        }
+
+        // 2. Asociar los nuevos items físicos de celular si aplican
         if (dto.getItemsCelulares() != null && !dto.getItemsCelulares().isEmpty()) {
             for (ItemCelularDTO itemDto : dto.getItemsCelulares()) {
                 if (itemCelularRepository.existsByImei1(itemDto.getImei1())) {
                     throw new BadRequestException("Ya existe un celular registrado con el IMEI: " + itemDto.getImei1());
                 }
-                ItemCelular item = productoMapper.toItemEntity(itemDto, producto);
+                ItemCelular item = productoMapper.toItemEntity(itemDto, productoPadre);
                 if (item.getEstadoDispositivo() == null) {
                     item.setEstadoDispositivo(EstadoDispositivo.Disponible);
                 }
-                producto.addItemCelular(item);
+                productoPadre.addItemCelular(item);
             }
         }
 
-        Producto guardado = repository.save(producto);
+        Producto guardado = repository.save(productoPadre);
         return productoMapper.toDTO(guardado);
     }
 
@@ -131,7 +161,7 @@ public class ProductoService {
             producto.setActivo(dto.getActivo());
         }
 
-        // Si se especifican items para agregar
+        // Si se especifican items para agregar o editar
         if (dto.getItemsCelulares() != null && !dto.getItemsCelulares().isEmpty()) {
             for (ItemCelularDTO itemDto : dto.getItemsCelulares()) {
                 if (itemDto.getId() == null) {
