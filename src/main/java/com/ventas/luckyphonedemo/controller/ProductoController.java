@@ -1,4 +1,4 @@
-package com.ventas.luckyphonedemo.controller;
+﻿package com.ventas.luckyphonedemo.controller;
 
 import com.ventas.luckyphonedemo.dto.ProductoResponseDTO;
 import com.ventas.luckyphonedemo.mapper.ProductoMapper;
@@ -23,42 +23,39 @@ public class ProductoController {
     private final ProductoMapper ProductoMapper;
 
     // ==========================================
-    // 🌐 ENDPOINTS PÚBLICOS (Para los Clientes - Catálogo WSP)
+    // ENDPOINTS PUBLICOS (Para los Clientes - Catalogo WSP)
     // ==========================================
 
-    /**
-     * Catálogo principal público paginado.
-     * Muestra solo celulares activos y adjunta el link de WhatsApp.
-     * URL: GET /api/productos/catalogo
-     */
     @GetMapping("/lista")
     public ResponseEntity<Page<ProductoResponseDTO>> obtenerCatalogoPublico(
           @RequestParam(defaultValue = "0") int page,
            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(service.obtenerCatalogoPublico(page, size));
     }
+
+    @GetMapping("/colores-disponibles")
+    public ResponseEntity<List<String>> obtenerColoresDisponibles() {
+        return ResponseEntity.ok(service.obtenerColoresDisponibles());
+    }
+
     @GetMapping("/admin/buscar")
     public ResponseEntity<List<Producto>> buscarProductoInterno(@RequestParam String nombre) {
         return ResponseEntity.ok(service.buscarPorNombre(nombre));
     }
-    /**
-     * Buscador inteligente para el catálogo público.
-     * Filtra por nombre y devuelve ProductoResponseDTO (evita el choque de tipos).
-     * URL: GET /api/productos/buscar
-     */
+
     @GetMapping("/buscar")
     public ResponseEntity<List<ProductoResponseDTO>> buscarProductoPublico(@RequestParam String nombre) {
         return ResponseEntity.ok(service.buscarEnCatalogoPublico(nombre));
     }
 
     // ==========================================
-    // 🔐 ENDPOINTS DE ADMINISTRACIÓN (Para el Panel Interno)
+    // ENDPOINTS DE ADMINISTRACION (Para el Panel Interno)
     // ==========================================
     @GetMapping("/lista-completa")
     public ResponseEntity<List<Producto>> obtenerProductos() {
         return ResponseEntity.ok(service.obtenerTodos());
     }
-    // GET con Paginación interna para la tabla del Administrador
+
     @GetMapping
     public ResponseEntity<Page<Producto>> obtenerProductos(
             @RequestParam(defaultValue = "0") int page,
@@ -68,10 +65,6 @@ public class ProductoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductoResponseDTO> obtenerPorId(@PathVariable Long id){
-        // Opción A: Si tu servicio ya tiene un método que devuelve el DTO directo:
-        // return ResponseEntity.ok(service.obtenerDetallePublico(id));
-
-        // Opción B: Si tu servicio devuelve el Producto y usas el mapper aquí (Asegúrate de tener inyectado tu ProductoMapper):
         Producto producto = service.obtenerPorId(id);
         return ResponseEntity.ok(ProductoMapper.toDTO(producto));
     }
@@ -100,7 +93,7 @@ public class ProductoController {
         return ResponseEntity.noContent().build();
     }
 
-    // PATCH - Cambiar estado de visibilidad rápido (Activo/Inactivo)
+    // PATCH - Cambiar estado de visibilidad rapido (Activo/Inactivo)
     @PatchMapping("/{id}/estado")
     public ResponseEntity<Producto> cambiarEstado(@PathVariable Long id) {
         return ResponseEntity.ok(service.cambiarEstado(id));

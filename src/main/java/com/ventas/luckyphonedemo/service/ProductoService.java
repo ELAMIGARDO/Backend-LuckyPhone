@@ -1,4 +1,4 @@
-package com.ventas.luckyphonedemo.service;
+﻿package com.ventas.luckyphonedemo.service;
 
 import com.ventas.luckyphonedemo.dto.ItemCelularDTO;
 import com.ventas.luckyphonedemo.dto.ProductoRequestDTO;
@@ -74,11 +74,33 @@ public class ProductoService {
         return repository.findByCategoriaId(categoriaId);
     }
 
+    @Transactional(readOnly = true)
+    public List<String> obtenerColoresDisponibles() {
+        return repository.findDistinctColores();
+    }
+
     // POST con DTO: Control estricto de unicidad de Producto Padre por Modelo + Color + Almacenamiento + Estado
     @Transactional
     public ProductoResponseDTO crearConDto(ProductoRequestDTO dto) {
         if (dto.getStock() < 0) {
             throw new BadRequestException("El Stock no puede ser negativo");
+        }
+
+        // Sanitización estricta de cadenas de texto
+        if (dto.getColor() != null) {
+            dto.setColor(dto.getColor().trim());
+        }
+        if (dto.getModelo() != null) {
+            dto.setModelo(dto.getModelo().trim());
+        }
+        if (dto.getNombre() != null) {
+            dto.setNombre(dto.getNombre().trim());
+        }
+        if (dto.getEstado() != null) {
+            dto.setEstado(dto.getEstado().trim());
+        }
+        if (dto.getAlmacenamiento() != null) {
+            dto.setAlmacenamiento(dto.getAlmacenamiento().trim());
         }
 
         Categoria categoria = null;
@@ -139,6 +161,23 @@ public class ProductoService {
     public ProductoResponseDTO actualizarConDto(Long id, ProductoRequestDTO dto) {
         Producto producto = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
+
+        // Sanitización estricta de cadenas de texto
+        if (dto.getColor() != null) {
+            dto.setColor(dto.getColor().trim());
+        }
+        if (dto.getModelo() != null) {
+            dto.setModelo(dto.getModelo().trim());
+        }
+        if (dto.getNombre() != null) {
+            dto.setNombre(dto.getNombre().trim());
+        }
+        if (dto.getEstado() != null) {
+            dto.setEstado(dto.getEstado().trim());
+        }
+        if (dto.getAlmacenamiento() != null) {
+            dto.setAlmacenamiento(dto.getAlmacenamiento().trim());
+        }
 
         if (dto.getCategoriaId() != null) {
             Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
@@ -208,7 +247,9 @@ public class ProductoService {
 
         producto.setAlmacenamiento(productoActualizado.getAlmacenamiento());
         producto.setRam(productoActualizado.getRam());
-        producto.setColor(productoActualizado.getColor());
+        if (productoActualizado.getColor() != null) {
+            producto.setColor(productoActualizado.getColor().trim());
+        }
         producto.setEstado(productoActualizado.getEstado());
         
         if (productoActualizado.getActivo() != null) {
@@ -222,6 +263,9 @@ public class ProductoService {
     public Producto crear(Producto producto) {
         if (producto.getStock() < 0) {
             throw new BadRequestException("El Stock no puede ser negativo");
+        }
+        if (producto.getColor() != null) {
+            producto.setColor(producto.getColor().trim());
         }
         return repository.save(producto);
     }

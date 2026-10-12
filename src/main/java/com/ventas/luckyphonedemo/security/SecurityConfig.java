@@ -1,4 +1,4 @@
-package com.ventas.luckyphonedemo.security;
+﻿package com.ventas.luckyphonedemo.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +49,7 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.GET, "/api/productos/lista").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/lista-completa").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/colores-disponibles").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/buscar").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/categoria/{categoriaId}").permitAll()
@@ -70,10 +71,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
