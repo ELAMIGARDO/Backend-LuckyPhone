@@ -34,8 +34,12 @@ public class ProductoRequestDTO {
     private String estado;
     private String bateria;
 
-    @NotNull(message = "La categoría es obligatoria")
+    @NotNull(message = "La categoria es obligatoria")
     private Long categoriaId;
 
     private String imagenUrl;
+    private Boolean activo;
+    private String imei1;
+    private String imei2;
+    private String numeroSerial;
 }

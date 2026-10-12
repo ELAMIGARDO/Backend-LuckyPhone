@@ -1,10 +1,13 @@
 package com.ventas.luckyphonedemo.service;
 
+import com.ventas.luckyphonedemo.dto.ProductoRequestDTO;
 import com.ventas.luckyphonedemo.dto.ProductoResponseDTO;
 import com.ventas.luckyphonedemo.exception.BadRequestException;
 import com.ventas.luckyphonedemo.exception.ResourceNotFoundException;
 import com.ventas.luckyphonedemo.mapper.ProductoMapper;
+import com.ventas.luckyphonedemo.model.Categoria;
 import com.ventas.luckyphonedemo.model.Producto;
+import com.ventas.luckyphonedemo.repositorio.CategoriaRepository;
 import com.ventas.luckyphonedemo.repositorio.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,10 +24,13 @@ public class ProductoService {
     private ProductoRepository repository;
 
     @Autowired
+    private CategoriaRepository categoriaRepository;
+
+    @Autowired
     private ProductoMapper productoMapper;
 
     // ==========================================
-    // 🌐 MÉTODOS NUEVOS PARA EL CATÁLOGO PÚBLICO
+    // METODOS PARA EL CATALOGO PUBLICO
     // ==========================================
 
     public Page<ProductoResponseDTO> obtenerCatalogoPublico(int page, int size) {
@@ -39,36 +45,30 @@ public class ProductoService {
     }
 
     // ==========================================
-    // 📋 MÉTODOS ANTERIORES MANTENIDOS
+    // METODOS DE CONSULTA Y GESTION
     // ==========================================
 
-    // GET
     public List<Producto> obtenerTodos() {
         return repository.findAll();
     }
 
-    //GET POR ID  //RuntimeException: dice que crear un excepción personalizada llamada ResourceNotFoundException para que el error sea más específico.
-    public Producto obtenerPorId(Long id){
+    public Producto obtenerPorId(Long id) {
         return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
     }
 
-    //Get por categoria id
     public List<Producto> listarPorCategoria(Long categoriaId) {
         return repository.findByCategoriaId(categoriaId);
     }
 
-    @Autowired
-    private com.ventas.luckyphonedemo.repositorio.CategoriaRepository categoriaRepository;
-
     // POST con DTO
-    public ProductoResponseDTO crearConDto(com.ventas.luckyphonedemo.dto.ProductoRequestDTO dto) {
+    public ProductoResponseDTO crearConDto(ProductoRequestDTO dto) {
         if (dto.getStock() < 0) {
             throw new BadRequestException("El Stock no puede ser negativo");
         }
-        com.ventas.luckyphonedemo.model.Categoria categoria = null;
+        Categoria categoria = null;
         if (dto.getCategoriaId() != null) {
             categoria = categoriaRepository.findById(dto.getCategoriaId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + dto.getCategoriaId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada con id: " + dto.getCategoriaId()));
         }
         Producto producto = productoMapper.toEntity(dto, categoria);
         Producto guardado = repository.save(producto);
@@ -76,13 +76,13 @@ public class ProductoService {
     }
 
     // PUT con DTO
-    public ProductoResponseDTO actualizarConDto(Long id, com.ventas.luckyphonedemo.dto.ProductoRequestDTO dto) {
+    public ProductoResponseDTO actualizarConDto(Long id, ProductoRequestDTO dto) {
         Producto producto = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 
         if (dto.getCategoriaId() != null) {
-            com.ventas.luckyphonedemo.model.Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Categoría no encontrada con id: " + dto.getCategoriaId()));
+            Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada con id: " + dto.getCategoriaId()));
             producto.setCategoria(categoria);
         }
 
@@ -98,17 +98,22 @@ public class ProductoService {
         producto.setEstado(dto.getEstado());
         producto.setBateria(dto.getBateria());
         producto.setImagenUrl(dto.getImagenUrl());
+        if (dto.getActivo() != null) {
+            producto.setActivo(dto.getActivo());
+        }
+        producto.setImei1(dto.getImei1());
+        producto.setImei2(dto.getImei2());
+        producto.setNumeroSerial(dto.getNumeroSerial());
 
         Producto actualizado = repository.save(producto);
         return productoMapper.toDTO(actualizado);
     }
 
-    // PUT (Actualizar) legacy manteniéndose para compatibilidad
+    // PUT (Actualizar) legacy para compatibilidad
     public Producto actualizar(Long id, Producto productoActualizado) {
         Producto producto = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 
-        // Campos básicos
         producto.setNombre(productoActualizado.getNombre());
         producto.setDescripcion(productoActualizado.getDescripcion());
         producto.setPrecio(productoActualizado.getPrecio());
@@ -116,18 +121,22 @@ public class ProductoService {
         producto.setImagenUrl(productoActualizado.getImagenUrl());
         producto.setCategoria(productoActualizado.getCategoria());
 
-        // --- NUEVOS campos para el Administrador ---
         producto.setAlmacenamiento(productoActualizado.getAlmacenamiento());
         producto.setRam(productoActualizado.getRam());
         producto.setColor(productoActualizado.getColor());
         producto.setEstado(productoActualizado.getEstado());
         producto.setBateria(productoActualizado.getBateria());
-        producto.setActivo(productoActualizado.isActivo());
+        producto.setImei1(productoActualizado.getImei1());
+        producto.setImei2(productoActualizado.getImei2());
+        producto.setNumeroSerial(productoActualizado.getNumeroSerial());
+        
+        if (productoActualizado.getActivo() != null) {
+            producto.setActivo(productoActualizado.getActivo());
+        }
 
         return repository.save(producto);
     }
 
-    //Post (crear)
     public Producto crear(Producto producto) {
         if (producto.getStock() < 0) {
             throw new BadRequestException("El Stock no puede ser negativo");
@@ -135,21 +144,16 @@ public class ProductoService {
         return repository.save(producto);
     }
 
-    // DELETE
     public void eliminar(Long id) {
         if (!repository.existsById(id))
             throw new ResourceNotFoundException("No se puede eliminar, el producto no existe");
         repository.deleteById(id);
     }
 
-    // TU BUSCADOR ORIGINAL RECUPERADO
-    // Buscar por nombre
     public List<Producto> buscarPorNombre(String nombre) {
         return repository.findByNombreContainingIgnoreCase(nombre);
     }
 
-    // Obtener todos con PAGINACIÓN
-    // El "page" es el número de página y "size" cuántos productos mostrar
     public Page<Producto> obtenerTodosPaginado(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return repository.findAll(pageable);
@@ -159,8 +163,8 @@ public class ProductoService {
         Producto producto = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado"));
 
-        // Si estaba true, pasa a false. Si estaba false, pasa a true.
-        producto.setActivo(!producto.isActivo());
+        boolean estadoActual = Boolean.TRUE.equals(producto.getActivo());
+        producto.setActivo(!estadoActual);
 
         return repository.save(producto);
     }

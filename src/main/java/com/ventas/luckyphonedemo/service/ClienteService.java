@@ -55,6 +55,4 @@ public class ClienteService {
         }
         repository.deleteById(id);
     }
-}
-
-
+};

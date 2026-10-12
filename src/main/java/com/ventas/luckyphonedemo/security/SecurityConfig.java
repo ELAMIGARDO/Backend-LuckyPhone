@@ -1,4 +1,4 @@
-package com.ventas.luckyphonedemo.security;
+﻿package com.ventas.luckyphonedemo.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -44,26 +44,22 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Rutas públicas de autenticación, políticas legales y documentación
-                .requestMatchers("/api/auth/**", "/api/politicas/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/politicas/**", "/api/garantias/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-                // Rutas públicas del catálogo para los clientes (WSP / web)
                 .requestMatchers(HttpMethod.GET, "/api/productos/lista").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/productos/lista-completa").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/buscar").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/productos/categoria/{categoriaId}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
 
-                // Rutas protegidas de administración de productos (solo ROLE_ADMIN)
                 .requestMatchers("/api/productos/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/productos/lista-completa").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/productos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/productos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/productos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/productos/**").hasRole("ADMIN")
 
-                // Cualquier otra solicitud requiere estar autenticado
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -74,7 +70,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

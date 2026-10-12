@@ -9,7 +9,6 @@ import lombok.*;
 @Table(name = "producto")
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,23 +25,32 @@ public class Producto {
     @Min(value = 0, message = "El stock no puede ser negativo")
     private int stock;
 
-    // --- ESPECIFICACIONES TÉCNICAS (Lo que el Admin llenará) ---
+    // --- ESPECIFICACIONES TECNICAS ---
+    private String marca;
+    private String modelo;
+    private String almacenamiento;
+    private String ram;
+    private String color;
+    private String estado;
+    private String bateria;
 
-    private String marca;          // Ej: Apple, Samsung (Viene de Categoria, pero puedes repetirlo aquí para texto rápido)
-    private String modelo;         // Ej: "iPhone 15 Pro Max"
-    private String almacenamiento; // Ej: "128GB", "256GB", "512GB"
-    private String ram;            // Ej: "6GB", "8GB", "12GB"
-    private String color;          // Ej: "Negro Espacial", "Titanio Natural"
-    private String estado;         // Ej: "Nuevo", "Seminuevo", "Open Box"
-    private String bateria;        // Ej: "100%" o "5000 mAh" (Clave en celulares)
+    @Lob
+    @Column(name = "imagen_url", columnDefinition = "LONGTEXT")
+    private String imagenUrl;
 
-    // --- CONTROL DE CATÁLOGO ---
+    private Boolean activo = true;
 
-    private boolean activo = true; // Para ocultar productos sin borrarlos
+    // --- IDENTIFICADORES OPCIONALES (NULL para cargadores/accesorios) ---
+    @Column(name = "imei_1", length = 20, nullable = true)
+    private String imei1;
+
+    @Column(name = "imei_2", length = 20, nullable = true)
+    private String imei2;
+
+    @Column(name = "numero_serial", length = 50, nullable = true)
+    private String numeroSerial;
 
     @ManyToOne
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
-
-    private String imagenUrl;
 }

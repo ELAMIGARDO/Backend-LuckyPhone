@@ -1,6 +1,8 @@
 package com.ventas.luckyphonedemo.mapper;
 
+import com.ventas.luckyphonedemo.dto.ProductoRequestDTO;
 import com.ventas.luckyphonedemo.dto.ProductoResponseDTO;
+import com.ventas.luckyphonedemo.model.Categoria;
 import com.ventas.luckyphonedemo.model.Producto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -10,8 +12,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class ProductoMapper {
 
-    // CORREGIDO: Asegúrate de tener declarada exactamente esta variable aquí arriba
-    @Value("${luckyphone.whatsapp.numero}")
+    @Value("${luckyphone.whatsapp.numero:51912345678}")
     private String whatsappNumero;
 
     public ProductoResponseDTO toDTO(Producto producto) {
@@ -30,20 +31,24 @@ public class ProductoMapper {
         dto.setEstado(producto.getEstado());
         dto.setBateria(producto.getBateria());
         dto.setImagenUrl(producto.getImagenUrl());
+        dto.setActivo(producto.getActivo());
+        dto.setImei1(producto.getImei1());
+        dto.setImei2(producto.getImei2());
+        dto.setNumeroSerial(producto.getNumeroSerial());
+        
+        if (producto.getCategoria() != null) {
+            dto.setCategoriaNombre(producto.getCategoria().getNombre());
+        }
 
-        // Redactar el mensaje comercial utilizando la ficha técnica del celular
-        String mensaje = "Hola LuckyPhone, estoy interesado en el siguiente equipo de tu catálogo:\n\n" +
-                "📱 Equipo: " + producto.getNombre() + " (" + producto.getMarca() + " " + producto.getModelo() + ")\n" +
-                "💾 Capacidad: " + producto.getAlmacenamiento() + " / RAM: " + producto.getRam() + "\n" +
-                "🎨 Color: " + producto.getColor() + "\n" +
-                "✨ Estado: " + producto.getEstado() + " (Batería: " + producto.getBateria() + ")\n" +
-                "💰 Precio: S/ " + producto.getPrecio() + "\n\n" +
-                "¿Tienen stock disponible para concretar la compra?";
+        String mensaje = "Hola LuckyPhone, estoy interesado en el siguiente equipo de tu catalogo:\n\n" +
+                "Equipo: " + producto.getNombre() + " (" + producto.getMarca() + " " + producto.getModelo() + ")\n" +
+                "Capacidad: " + producto.getAlmacenamiento() + " / RAM: " + producto.getRam() + "\n" +
+                "Color: " + producto.getColor() + "\n" +
+                "Estado: " + producto.getEstado() + " (Bateria: " + producto.getBateria() + ")\n" +
+                "Precio: S/ " + producto.getPrecio() + "\n\n" +
+                "Tienen stock disponible para concretar la compra?";
 
-        // Codificar el texto para la URL
         String mensajeCodificado = UriUtils.encode(mensaje, StandardCharsets.UTF_8);
-
-        // Construir la URL final dinámicamente usando la variable inyectada
         String urlFinal = "https://wa.me/" + whatsappNumero + "?text=" + mensajeCodificado;
 
         dto.setWhatsappLink(urlFinal);
@@ -51,7 +56,7 @@ public class ProductoMapper {
         return dto;
     }
 
-    public Producto toEntity(com.ventas.luckyphonedemo.dto.ProductoRequestDTO dto, com.ventas.luckyphonedemo.model.Categoria categoria) {
+    public Producto toEntity(ProductoRequestDTO dto, Categoria categoria) {
         Producto producto = new Producto();
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
@@ -65,8 +70,15 @@ public class ProductoMapper {
         producto.setEstado(dto.getEstado());
         producto.setBateria(dto.getBateria());
         producto.setImagenUrl(dto.getImagenUrl());
+        if (dto.getActivo() != null) {
+            producto.setActivo(dto.getActivo());
+        } else {
+            producto.setActivo(true);
+        }
+        producto.setImei1(dto.getImei1());
+        producto.setImei2(dto.getImei2());
+        producto.setNumeroSerial(dto.getNumeroSerial());
         producto.setCategoria(categoria);
-        producto.setActivo(true);
         return producto;
     }
 }

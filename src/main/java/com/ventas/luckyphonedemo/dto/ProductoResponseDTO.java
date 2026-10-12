@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class ProductoResponseDTO {
     private Long id;
     private String nombre;
@@ -22,6 +21,10 @@ public class ProductoResponseDTO {
     private String estado;
     private String bateria;
     private String imagenUrl;
-    private String whatsappLink; // El link autogenerado
-
+    private Boolean activo;
+    private String whatsappLink;
+    private String imei1;
+    private String imei2;
+    private String numeroSerial;
+    private String categoriaNombre;
 }
