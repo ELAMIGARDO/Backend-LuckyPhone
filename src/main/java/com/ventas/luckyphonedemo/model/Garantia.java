@@ -1,4 +1,4 @@
-﻿package com.ventas.luckyphonedemo.model;
+package com.ventas.luckyphonedemo.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -62,7 +62,13 @@ public class Garantia {
     @Column(name = "emisor_nombre", nullable = false, length = 150)
     private String emisorNombre;
 
-    // Borrado Logico (Soft Delete)
+    // Estado del ciclo transaccional de pago de la proforma
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago", nullable = false, length = 20)
+    @Builder.Default
+    private EstadoPago estadoPago = EstadoPago.PENDIENTE;
+
+    // Borrado Logico (Soft Delete / Anulacion)
     @Column(name = "eliminado_at")
     private LocalDateTime eliminadoAt;
 }

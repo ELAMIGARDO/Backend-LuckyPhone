@@ -1,4 +1,4 @@
-﻿package com.ventas.luckyphonedemo.repositorio;
+package com.ventas.luckyphonedemo.repositorio;
 
 import com.ventas.luckyphonedemo.model.Garantia;
 import org.springframework.data.jpa.repository.JpaRepository;

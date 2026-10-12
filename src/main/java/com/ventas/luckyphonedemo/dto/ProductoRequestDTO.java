@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -32,14 +34,15 @@ public class ProductoRequestDTO {
     private String ram;
     private String color;
     private String estado;
-    private String bateria;
 
     @NotNull(message = "La categoria es obligatoria")
     private Long categoriaId;
 
     private String imagenUrl;
     private Boolean activo;
-    private String imei1;
-    private String imei2;
-    private String numeroSerial;
+
+    /**
+     * Opcional: Lista de items de celulares que se pueden dar de alta al registrar o actualizar el producto.
+     */
+    private List<ItemCelularDTO> itemsCelulares;
 }

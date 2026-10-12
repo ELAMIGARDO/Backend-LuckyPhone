@@ -1,7 +1,9 @@
-﻿package com.ventas.luckyphonedemo.controller;
+package com.ventas.luckyphonedemo.controller;
 
+import com.ventas.luckyphonedemo.model.EstadoPago;
 import com.ventas.luckyphonedemo.model.Garantia;
 import com.ventas.luckyphonedemo.repositorio.GarantiaRepository;
+import com.ventas.luckyphonedemo.service.ProformaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,14 +19,15 @@ import java.util.stream.Collectors;
 public class GarantiaController {
 
     private final GarantiaRepository garantiaRepository;
+    private final ProformaService proformaService;
 
-    public GarantiaController(GarantiaRepository garantiaRepository) {
+    public GarantiaController(GarantiaRepository garantiaRepository, ProformaService proformaService) {
         this.garantiaRepository = garantiaRepository;
+        this.proformaService = proformaService;
     }
 
     /**
      * GET /api/garantias?anulados=false|true&estado=todos|vigentes|caducados&query=xyz
-     * Retorna el listado de garantias con los dias restantes calculados y los conteos para las burbujas numÃ©ricas.
      */
     @GetMapping
     public ResponseEntity<Map<String, Object>> listarGarantias(
@@ -36,7 +39,7 @@ public class GarantiaController {
         LocalDateTime ahora = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        // Conteos globales para las burbujas dinamicas
+        // Conteos globales para las burbujas dinámicas
         long countTotales = todas.stream().filter(g -> g.getEliminadoAt() == null).count();
         long countVigentes = todas.stream().filter(g -> g.getEliminadoAt() == null && g.getFechaCaducidad().isAfter(ahora)).count();
         long countCaducados = todas.stream().filter(g -> g.getEliminadoAt() == null && !g.getFechaCaducidad().isAfter(ahora)).count();
@@ -62,7 +65,7 @@ public class GarantiaController {
             }
         }
 
-        // BÃºsqueda en vivo por Cliente, DNI, ID o IMEI/Serie
+        // Búsqueda en vivo por Cliente, DNI, ID o IMEI/Serie
         if (query != null && !query.trim().isEmpty()) {
             String q = query.toLowerCase().trim();
             listaFiltrada = listaFiltrada.stream().filter(g ->
@@ -90,10 +93,14 @@ public class GarantiaController {
             dto.put("imei1", g.getImei1());
             dto.put("imei2", g.getImei2());
             dto.put("numeroSerie", g.getNumeroSerie());
+            dto.put("precioBase", g.getPrecioBase());
+            dto.put("descuentoMonto", g.getDescuentoMonto());
+            dto.put("precioFinal", g.getPrecioFinal());
             dto.put("activacion", g.getFechaEmision() != null ? g.getFechaEmision().format(formatter) : "");
             dto.put("caducidad", g.getFechaCaducidad() != null ? g.getFechaCaducidad().format(formatter) : "");
             dto.put("diasRestantes", diasRestantes);
             dto.put("estado", diasRestantes > 0 ? "Vigente" : "Caducado");
+            dto.put("estadoPago", g.getEstadoPago() != null ? g.getEstadoPago().name() : "PENDIENTE");
             dto.put("alerta", diasRestantes <= 0);
             dto.put("eliminadoAt", g.getEliminadoAt());
 
@@ -109,7 +116,6 @@ public class GarantiaController {
 
     /**
      * GET /api/garantias/siguiente-codigo
-     * Genera automÃ¡ticamente el cÃ³digo correlativo de control (ej. G-105).
      */
     @GetMapping("/siguiente-codigo")
     public ResponseEntity<Map<String, String>> obtenerSiguienteCodigo() {
@@ -122,57 +128,59 @@ public class GarantiaController {
 
     /**
      * POST /api/garantias
-     * Guardar proforma/garantÃ­a emitida fÃ­sicamente en MySQL antes de imprimir PDF.
+     * Emitir proforma (estado PENDIENTE, reserva hardware si es celular).
      */
     @PostMapping
     public ResponseEntity<Garantia> crearGarantia(@RequestBody Garantia garantia) {
-        if (garantia.getFechaEmision() == null) {
-            garantia.setFechaEmision(LocalDateTime.now());
-        }
-        if (garantia.getId() == null || garantia.getId().trim().isEmpty()) {
-            long total = garantiaRepository.count();
-            garantia.setId(String.format("G-%03d", total + 1));
-        }
-        Garantia guardada = garantiaRepository.save(garantia);
-        return ResponseEntity.ok(guardada);
+        Garantia emitida = proformaService.emitirProforma(garantia);
+        return ResponseEntity.ok(emitida);
+    }
+
+    /**
+     * POST /api/garantias/{id}/pagar
+     * Transición PENDIENTE -> PAGADO (Hardware marcado como Vendido, garantía activada).
+     */
+    @PostMapping("/{id}/pagar")
+    public ResponseEntity<Map<String, Object>> registrarPago(@PathVariable String id) {
+        Garantia pagada = proformaService.registrarPago(id);
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Pago registrado con éxito y hardware marcado como Vendido.");
+        response.put("garantia", pagada);
+        return ResponseEntity.ok(response);
     }
 
     /**
      * DELETE /api/garantias/{id}
-     * Soft Delete (Anular)
+     * Transición a ANULADO (Hardware liberado a Disponible, garantía anulada).
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> anularGarantia(@PathVariable String id) {
+        Garantia anulada = proformaService.anularProforma(id);
         Map<String, Object> response = new HashMap<>();
-        return garantiaRepository.findById(id).map(g -> {
-            g.setEliminadoAt(LocalDateTime.now());
-            garantiaRepository.save(g);
-            response.put("success", true);
-            response.put("message", "GarantÃ­a anulada correctamente.");
-            return ResponseEntity.ok(response);
-        }).orElseGet(() -> {
-            response.put("success", false);
-            response.put("message", "GarantÃ­a no encontrada.");
-            return ResponseEntity.status(404).body(response);
-        });
+        response.put("success", true);
+        response.put("message", "Proforma anulada y hardware liberado.");
+        response.put("garantia", anulada);
+        return ResponseEntity.ok(response);
     }
 
     /**
      * POST /api/garantias/{id}/restaurar
-     * Restaurar Soft Delete (Papelera de reciclaje)
+     * Restaurar Garantía si estaba anulada
      */
     @PostMapping("/{id}/restaurar")
     public ResponseEntity<Map<String, Object>> restaurarGarantia(@PathVariable String id) {
         Map<String, Object> response = new HashMap<>();
         return garantiaRepository.findById(id).map(g -> {
             g.setEliminadoAt(null);
+            g.setEstadoPago(EstadoPago.PENDIENTE);
             garantiaRepository.save(g);
             response.put("success", true);
-            response.put("message", "GarantÃ­a restaurada correctamente.");
+            response.put("message", "Garantía restaurada correctamente.");
             return ResponseEntity.ok(response);
         }).orElseGet(() -> {
             response.put("success", false);
-            response.put("message", "GarantÃ­a no encontrada.");
+            response.put("message", "Garantía no encontrada.");
             return ResponseEntity.status(404).body(response);
         });
     }
