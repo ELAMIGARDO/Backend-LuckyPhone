@@ -60,6 +60,11 @@ public class ProductoService {
     // ==========================================
 
     @Transactional(readOnly = true)
+    public List<ProductoResponseDTO> obtenerTodosResponseDTO() {
+        return repository.findAll().stream().map(productoMapper::toDTO).toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<Producto> obtenerTodos() {
         return repository.findAll();
     }

@@ -2,8 +2,10 @@ package com.ventas.luckyphonedemo.config;
 
 import com.ventas.luckyphonedemo.model.Categoria;
 import com.ventas.luckyphonedemo.model.Cliente;
+import com.ventas.luckyphonedemo.model.Producto;
 import com.ventas.luckyphonedemo.repositorio.CategoriaRepository;
 import com.ventas.luckyphonedemo.repositorio.ClienteRepository;
+import com.ventas.luckyphonedemo.repositorio.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +19,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final ClienteRepository clienteRepository;
     private final CategoriaRepository categoriaRepository;
+    private final ProductoRepository productoRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -44,7 +47,6 @@ public class DataInitializer implements CommandLineRunner {
             admin.setRol("ROLE_ADMIN");
             clienteRepository.save(admin);
         } else {
-            // Asegurar que la contraseña de admin esté bien codificada si ya existía sin BCrypt
             Cliente admin = clienteRepository.findByEmail("admin@luckyphone.com").orElse(null);
             if (admin != null && !admin.getPassword().startsWith("$2a$")) {
                 admin.setPassword(passwordEncoder.encode("123456@"));
@@ -72,6 +74,20 @@ public class DataInitializer implements CommandLineRunner {
                 user.setRol("ROLE_USER");
                 clienteRepository.save(user);
             }
+        }
+
+        // 4. Auto-curacion de stock en BD MySQL para sincronizar unidades fisicas
+        try {
+            List<Producto> productos = productoRepository.findAll();
+            for (Producto p : productos) {
+                int stockReal = p.getStockEfectivo();
+                if (p.getStock() != stockReal) {
+                    p.setStock(stockReal);
+                    productoRepository.save(p);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Advertencia al sincronizar stock inicial: " + e.getMessage());
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.ventas.luckyphonedemo.controller;
 
+import com.ventas.luckyphonedemo.dto.ProductoRequestDTO;
 import com.ventas.luckyphonedemo.dto.ProductoResponseDTO;
 import com.ventas.luckyphonedemo.mapper.ProductoMapper;
 import com.ventas.luckyphonedemo.model.Producto;
@@ -15,12 +16,12 @@ import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/api/productos")
+@RequestMapping({"/api/v1/products", "/api/productos"})
 @RequiredArgsConstructor
 public class ProductoController {
 
     private final ProductoService service;
-    private final ProductoMapper ProductoMapper;
+    private final ProductoMapper productoMapper;
 
     // ==========================================
     // ENDPOINTS PUBLICOS (Para los Clientes - Catalogo WSP)
@@ -28,8 +29,8 @@ public class ProductoController {
 
     @GetMapping("/lista")
     public ResponseEntity<Page<ProductoResponseDTO>> obtenerCatalogoPublico(
-          @RequestParam(defaultValue = "0") int page,
-           @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(service.obtenerCatalogoPublico(page, size));
     }
 
@@ -52,8 +53,8 @@ public class ProductoController {
     // ENDPOINTS DE ADMINISTRACION (Para el Panel Interno)
     // ==========================================
     @GetMapping("/lista-completa")
-    public ResponseEntity<List<Producto>> obtenerProductos() {
-        return ResponseEntity.ok(service.obtenerTodos());
+    public ResponseEntity<List<ProductoResponseDTO>> obtenerProductos() {
+        return ResponseEntity.ok(service.obtenerTodosResponseDTO());
     }
 
     @GetMapping("/disponibles")
@@ -76,7 +77,7 @@ public class ProductoController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductoResponseDTO> obtenerPorId(@PathVariable Long id){
         Producto producto = service.obtenerPorId(id);
-        return ResponseEntity.ok(ProductoMapper.toDTO(producto));
+        return ResponseEntity.ok(productoMapper.toDTO(producto));
     }
 
     @GetMapping("/categoria/{categoriaId}")
@@ -86,13 +87,13 @@ public class ProductoController {
 
     // POST - Crear producto
     @PostMapping
-    public ResponseEntity<ProductoResponseDTO> crearProducto(@Valid @RequestBody com.ventas.luckyphonedemo.dto.ProductoRequestDTO productoDto) {
+    public ResponseEntity<ProductoResponseDTO> crearProducto(@Valid @RequestBody ProductoRequestDTO productoDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.crearConDto(productoDto));
     }
 
     // PUT - Actualizar producto
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoResponseDTO> actualizarProducto(@PathVariable Long id, @Valid @RequestBody com.ventas.luckyphonedemo.dto.ProductoRequestDTO productoDto) {
+    public ResponseEntity<ProductoResponseDTO> actualizarProducto(@PathVariable Long id, @Valid @RequestBody ProductoRequestDTO productoDto) {
         return ResponseEntity.ok(service.actualizarConDto(id, productoDto));
     }
 
