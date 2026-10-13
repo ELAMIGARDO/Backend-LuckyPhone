@@ -20,4 +20,8 @@ public interface ItemCelularRepository extends JpaRepository<ItemCelular, Long> 
     List<ItemCelular> findByProductoIdAndEstadoDispositivo(Long productoId, EstadoDispositivo estado);
 
     long countByProductoIdAndEstadoDispositivo(Long productoId, EstadoDispositivo estado);
+
+    List<ItemCelular> findByEstadoDispositivo(EstadoDispositivo estado);
+
+    long countByEstadoDispositivo(EstadoDispositivo estado);
 }

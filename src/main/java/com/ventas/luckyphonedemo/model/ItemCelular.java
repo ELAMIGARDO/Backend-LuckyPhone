@@ -57,6 +57,9 @@ public class ItemCelular {
     @Column(name = "actualizado_at")
     private LocalDateTime actualizadoAt;
 
+    @Column(name = "fecha_venta")
+    private LocalDateTime fechaVenta;
+
     @PrePersist
     protected void onCreate() {
         this.creadoAt = LocalDateTime.now();

@@ -33,6 +33,7 @@ public class ProductoMapper {
                 .estadoDispositivo(item.getEstadoDispositivo())
                 .creadoAt(item.getCreadoAt())
                 .actualizadoAt(item.getActualizadoAt())
+                .fechaVenta(item.getFechaVenta())
                 .build();
     }
 
@@ -45,6 +46,7 @@ public class ProductoMapper {
         item.setImei2(dto.getImei2());
         item.setNumeroSerial(dto.getNumeroSerial());
         item.setBateria(dto.getBateria());
+        item.setFechaVenta(dto.getFechaVenta());
         if (dto.getEstadoDispositivo() != null) {
             item.setEstadoDispositivo(dto.getEstadoDispositivo());
         }

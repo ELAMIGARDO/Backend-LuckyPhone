@@ -85,6 +85,13 @@ public class ItemCelularController {
         ItemCelular item = itemCelularRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Item celular no encontrado"));
         item.setEstadoDispositivo(estado);
+        if (estado == EstadoDispositivo.Vendido) {
+            if (item.getFechaVenta() == null) {
+                item.setFechaVenta(java.time.LocalDateTime.now());
+            }
+        } else {
+            item.setFechaVenta(null);
+        }
         ItemCelular actualizado = itemCelularRepository.save(item);
         return ResponseEntity.ok(productoMapper.toItemDTO(actualizado));
     }

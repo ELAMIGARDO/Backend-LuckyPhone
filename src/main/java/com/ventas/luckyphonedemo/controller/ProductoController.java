@@ -1,4 +1,4 @@
-﻿package com.ventas.luckyphonedemo.controller;
+package com.ventas.luckyphonedemo.controller;
 
 import com.ventas.luckyphonedemo.dto.ProductoResponseDTO;
 import com.ventas.luckyphonedemo.mapper.ProductoMapper;
@@ -54,6 +54,16 @@ public class ProductoController {
     @GetMapping("/lista-completa")
     public ResponseEntity<List<Producto>> obtenerProductos() {
         return ResponseEntity.ok(service.obtenerTodos());
+    }
+
+    @GetMapping("/disponibles")
+    public ResponseEntity<List<ProductoResponseDTO>> obtenerDisponibles() {
+        return ResponseEntity.ok(service.obtenerDisponibles());
+    }
+
+    @GetMapping("/agotados")
+    public ResponseEntity<List<ProductoResponseDTO>> obtenerAgotados() {
+        return ResponseEntity.ok(service.obtenerAgotados());
     }
 
     @GetMapping

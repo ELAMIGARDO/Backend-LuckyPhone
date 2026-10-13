@@ -33,4 +33,6 @@ public class ItemCelularDTO {
     private LocalDateTime creadoAt;
 
     private LocalDateTime actualizadoAt;
+
+    private LocalDateTime fechaVenta;
 }

@@ -1,4 +1,4 @@
-﻿package com.ventas.luckyphonedemo.service;
+package com.ventas.luckyphonedemo.service;
 
 import com.ventas.luckyphonedemo.dto.ItemCelularDTO;
 import com.ventas.luckyphonedemo.dto.ProductoRequestDTO;
@@ -77,6 +77,20 @@ public class ProductoService {
     @Transactional(readOnly = true)
     public List<String> obtenerColoresDisponibles() {
         return repository.findDistinctColores();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponseDTO> obtenerDisponibles() {
+        return repository.findDisponiblesActivos().stream()
+                .map(productoMapper::toDTO)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductoResponseDTO> obtenerAgotados() {
+        return repository.findAgotados().stream()
+                .map(productoMapper::toDTO)
+                .toList();
     }
 
     // POST con DTO: Control estricto de unicidad de Producto Padre por Modelo + Color + Almacenamiento + Estado

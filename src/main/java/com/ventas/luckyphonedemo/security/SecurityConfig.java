@@ -1,4 +1,4 @@
-﻿package com.ventas.luckyphonedemo.security;
+package com.ventas.luckyphonedemo.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -44,7 +44,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/politicas/**", "/api/garantias/**", "/api/items-celulares/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/politicas/**", "/api/garantias/**", "/api/items-celulares/**", "/api/admin/metrics/**", "/api/reportes/**", "/api/backup/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/api/productos/lista").permitAll()
